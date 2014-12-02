@@ -1,0 +1,20 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+group = 'lucene'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.apache.lucene:lucene-core:4.0.+"
+    compile "org.apache.lucene:lucene-queryparser:4.0.+"
+    compile "org.apache.lucene:lucene-queries:4.0.+"
+    compile "org.apache.lucene:lucene-analyzers-common:4.0.+"
+    compile "org.apache.lucene:lucene-codecs:4.0.+"
+    compile "com.google.guava:guava:18.0"
+    compile "org.apache.commons:commons-io:1.3.2"
+    testCompile "junit:junit:4.+"
+}
