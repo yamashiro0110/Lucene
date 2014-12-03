@@ -2,23 +2,25 @@ package test;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SearcherFactory;
+import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
 
@@ -41,7 +43,7 @@ public class IndexSearch {
      */
     private static final String INDEX_DIR = "index";
 
-    private IndexReader indexReader;
+    private SearcherManager searcherManager;
     private IndexSearcher indexSearcher;
 
     /**
@@ -49,8 +51,54 @@ public class IndexSearch {
      * @throws IOException
      */
     public IndexSearch() throws IOException {
-        indexReader = DirectoryReader.open(FSDirectory.open(new File(INDEX_DIR)));
-        indexSearcher = new IndexSearcher(indexReader);
+        Directory dir = FSDirectory.open(new File(INDEX_DIR));
+        searcherManager = new SearcherManager(dir, new SearcherFactory());
+        indexSearcher = searcherManager.acquire();
+    }
+
+    /**
+     * インデックスが更新されていれば再読み込み
+     * @return
+     * @throws IOException
+     */
+    public boolean maybeRefresh() throws IOException {
+        System.out.println("インデックス再読み込みを実行します:maybyRefresh");
+        if (searcherManager.maybeRefresh()) {
+            System.out.println("インデックス再読み込みが完了しました:maybyRefresh");
+            return true;
+        }
+        else {
+            System.out.println("インデックス再読み込みに失敗しました:maybyRefresh");
+            return false;
+        }
+    }
+
+    /**
+     * インデックスが更新されていれば再読み込み
+     * indexSearcherのインスタンスも更新する
+     * @return
+     * @throws IOException
+     */
+    public boolean maybeRefreshAndAquire() throws IOException {
+        if (searcherManager.maybeRefresh()) {
+            System.out.println("インデックス再読み込みが完了しました:maybeRefreshAndAquire");
+            indexSearcher = searcherManager.acquire();
+            return true;
+        }
+        else {
+            System.out.println("インデックス再読み込みに失敗しました:maybeRefreshAndAquire");
+            return false;
+        }
+    }
+
+    /**
+     * インデックスが更新されていれば再読み込み
+     * 別スレッドによりmaybyRefreshが実行されている場合は待つ
+     * @throws IOException
+     */
+    public void maybeRefreshBlocking() throws IOException {
+        System.out.println("インデックス再読み込みを実行します:maybeRefreshBlocking");
+        searcherManager.maybeRefreshBlocking();
     }
 
     /**
@@ -79,9 +127,13 @@ public class IndexSearch {
         System.out.println("*******************************");
         System.out.println("matchAllDocsQuery開始");
         matchAllDocsQuery();
+
+        System.out.println("*******************************");
+        System.out.println("booleanQuery開始");
+        booleanQuery(BooleanClause.Occur.MUST);
     }
 
-    private void standardQuery(String fieldName, String searchValue) {
+    public void standardQuery(String fieldName, String searchValue) {
         try {
             System.out.println();
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
@@ -95,7 +147,7 @@ public class IndexSearch {
         }
     }
 
-    private void numericRangeQuery(int num) {
+    public void numericRangeQuery(int num) {
         try {
             System.out.println();
             Query query = NumericRangeQuery.newIntRange("num", num, num, true, true);
@@ -107,7 +159,7 @@ public class IndexSearch {
         }
     }
 
-    private void wildCardQuery(String fieldName, String searchValue) {
+    public void wildCardQuery(String fieldName, String searchValue) {
         try {
             System.out.println();
             WildcardQuery query = new WildcardQuery(new Term(fieldName, searchValue));
@@ -119,7 +171,7 @@ public class IndexSearch {
         }
     }
 
-    private void termQuery(String fieldName, String searchValue) {
+    public void termQuery(String fieldName, String searchValue) {
         try {
             System.out.println();
             TermQuery query = new TermQuery(new Term(fieldName, searchValue));
@@ -131,7 +183,7 @@ public class IndexSearch {
         }
     }
 
-    private void matchAllDocsQuery() {
+    public void matchAllDocsQuery() {
         try {
             System.out.println();
             MatchAllDocsQuery query = new MatchAllDocsQuery();
@@ -139,6 +191,24 @@ public class IndexSearch {
             TopDocs result = indexSearcher.search(query, 3);
             showSearchResult(result);
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void booleanQuery(BooleanClause.Occur occur) {
+        try {
+            System.out.println();
+            Query q1 = new WildcardQuery(new Term("str_num", "10*"));
+            Query q2 = new WildcardQuery(new Term("val", "value40*"));
+
+            BooleanQuery booleanQuery = new BooleanQuery();
+            booleanQuery.add(q1, occur);
+            booleanQuery.add(q2, occur);
+            System.out.println("query -> " + booleanQuery.toString());
+
+            TopDocs result = indexSearcher.search(booleanQuery, 3);
+            showSearchResult(result);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
