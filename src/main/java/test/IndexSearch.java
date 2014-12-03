@@ -43,7 +43,14 @@ public class IndexSearch {
      */
     private static final String INDEX_DIR = "index";
 
+    /**
+     * IndexSeacher管理クラス
+     */
     private SearcherManager searcherManager;
+
+    /**
+     * インデックス検索を実行するクラス
+     */
     private IndexSearcher indexSearcher;
 
     /**
@@ -93,7 +100,7 @@ public class IndexSearch {
 
     /**
      * インデックスが更新されていれば再読み込み
-     * 別スレッドによりmaybyRefreshが実行されている場合は待つ
+     * 別スレッドによりmaybeRefreshが実行されている場合は待つ
      * @throws IOException
      */
     public void maybeRefreshBlocking() throws IOException {
