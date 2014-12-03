@@ -22,7 +22,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
 
 /**
  * インデックス検索のテスト
@@ -143,8 +142,8 @@ public class IndexSearch {
     public void standardQuery(String fieldName, String searchValue) {
         try {
             System.out.println();
-            Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
-            QueryParser queryParser = new QueryParser(Version.LUCENE_40, fieldName, analyzer);
+            Analyzer analyzer = new StandardAnalyzer();
+            QueryParser queryParser = new QueryParser(fieldName, analyzer);
             Query query = queryParser.parse(searchValue);
             System.out.println("query -> " + query.toString());
             TopDocs result = indexSearcher.search(query, 3);

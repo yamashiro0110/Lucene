@@ -87,10 +87,10 @@ public class IndexCreate {
         System.out.println("インデックス生成を開始します");
 
         // アナライザ
-        Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+        Analyzer analyzer = new StandardAnalyzer();
 
         // インデックス生成の設定
-        IndexWriterConfig writerConfig = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+        IndexWriterConfig writerConfig = new IndexWriterConfig(Version.LATEST, analyzer);
         writerConfig.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
 
         try {
@@ -100,6 +100,7 @@ public class IndexCreate {
             // インデックス生成クラス
             IndexWriter indexWriter = new IndexWriter(directory, writerConfig);
 
+            @SuppressWarnings("unchecked")
             List<String> lineList = FileUtils.readLines(new File(INDEX_DATA_PATH));
 
             for (String line : lineList) {
