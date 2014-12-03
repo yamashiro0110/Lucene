@@ -54,7 +54,7 @@ public class IndexCreate {
     /**
      * インデックスに追加するデータファイルを作成する
      */
-    private void createDataFiles() {
+    public void createDataFiles() {
         System.out.println("インデックス生成用データファイルの作成を開始します");
         Random random = new Random();
 
