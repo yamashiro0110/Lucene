@@ -31,3 +31,6 @@ local.properties
 
 .classpath
 .idea/
+
+index/*
+index_files/*
