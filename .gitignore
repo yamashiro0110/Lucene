@@ -34,3 +34,4 @@ local.properties
 
 index/*
 index_files/*
+build/
