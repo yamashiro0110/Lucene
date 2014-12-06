@@ -120,7 +120,10 @@ public class IndexSearch {
 
         System.out.println("*******************************");
         System.out.println("numericRangeQuery開始");
-        numericRangeQuery(10);
+        numericRangeQuery(10, 12, true, true);
+        numericRangeQuery(10, 12, true, false);
+        numericRangeQuery(10, 12, false, true);
+        numericRangeQuery(10, 12, false, false);
 
         System.out.println("*******************************");
         System.out.println("wildCardQuery開始");
@@ -143,7 +146,6 @@ public class IndexSearch {
 
     public void standardQuery(String fieldName, String searchValue) {
         try {
-            System.out.println();
             Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
             QueryParser queryParser = new QueryParser(Version.LUCENE_40, fieldName, analyzer);
             Query query = queryParser.parse(searchValue);
@@ -155,11 +157,10 @@ public class IndexSearch {
         }
     }
 
-    public void numericRangeQuery(int num) {
+    public void numericRangeQuery(int min, int max, boolean minInclusive, boolean maxInclusive) {
         try {
-            System.out.println();
-            Query query = NumericRangeQuery.newIntRange("num", num, num, true, true);
-            System.out.println("query -> " + query.toString());
+            Query query = NumericRangeQuery.newIntRange("num", min, max, minInclusive, maxInclusive);
+            System.out.println(String.format("query -> %s, minInclusive:%b, maxInclusive:%b", query.toString(), minInclusive, maxInclusive));
             TopDocs result = indexSearcher.search(query, 3);
             showSearchResult(result);
         } catch (IOException e) {
@@ -169,7 +170,6 @@ public class IndexSearch {
 
     public void wildCardQuery(String fieldName, String searchValue) {
         try {
-            System.out.println();
             WildcardQuery query = new WildcardQuery(new Term(fieldName, searchValue));
             System.out.println("query -> " + query.toString());
             TopDocs result = indexSearcher.search(query, 3);
@@ -181,7 +181,6 @@ public class IndexSearch {
 
     public void termQuery(String fieldName, String searchValue) {
         try {
-            System.out.println();
             TermQuery query = new TermQuery(new Term(fieldName, searchValue));
             System.out.println("query -> " + query.toString());
             TopDocs result = indexSearcher.search(query, 3);
@@ -193,7 +192,6 @@ public class IndexSearch {
 
     public void matchAllDocsQuery() {
         try {
-            System.out.println();
             MatchAllDocsQuery query = new MatchAllDocsQuery();
             System.out.println("query -> " + query.toString());
             TopDocs result = indexSearcher.search(query, 3);
