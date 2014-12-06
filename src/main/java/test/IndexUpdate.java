@@ -31,7 +31,6 @@ public class IndexUpdate {
                     indexSearch.wildCardQuery("val", "value11*");
                 }
                 else if (line.equals("create")) {
-                    indexCreate.createDataFiles();
                     indexCreate.createIndex();
                 }
                 else if (line.equals("refresh")) {
