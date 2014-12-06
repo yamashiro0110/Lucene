@@ -1,6 +1,5 @@
 package test;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -16,7 +15,6 @@ import org.apache.lucene.util.Version;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -27,7 +25,6 @@ public class IndexCreate {
 
     public static void main(String[] args) {
         IndexCreate indexCreate = new IndexCreate();
-        indexCreate.createDataFiles();
         indexCreate.createIndex();
     }
 
@@ -37,48 +34,9 @@ public class IndexCreate {
     private static final String INDEX_DIR = "index";
 
     /**
-     * インデックスに追加するデータファイルディレクトリ
+     * インデックスの件数
      */
-    private static final String INDEX_FILE_DIR = "index_files";
-
-    /**
-     * インデックスに追加するデータファイル
-     */
-    private static final String INDEX_DATA_PATH = INDEX_FILE_DIR + "/index_data.txt";
-
-    /**
-     * インデックスに追加するデータの区切り文字
-     */
-    private static final String DATA_SPLITER = "\t";
-
-    /**
-     * インデックスに追加するデータファイルを作成する
-     */
-    public void createDataFiles() {
-        System.out.println("インデックス生成用データファイルの作成を開始します");
-        Random random = new Random();
-
-        // データファイル出力用
-        StringBuilder rowBuilder = new StringBuilder();
-
-        // 出力する内容を追加
-        for (int i = 0; i < 1000; i++) {
-            rowBuilder
-            .append(i).append(DATA_SPLITER)
-            .append("value" + random.nextInt(1000)).append(DATA_SPLITER)
-            .append(new Date()).append("\n");
-        }
-
-        try {
-            // ファイルに出力
-            FileUtils.writeStringToFile(new File(INDEX_DATA_PATH), rowBuilder.toString());
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("インデックス生成用データファイルの作成が終了しました");
-    }
+    private static final int INDEX_COUNT = 10000;
 
     /**
      * インデックスを生成する
@@ -100,30 +58,25 @@ public class IndexCreate {
             // インデックス生成クラス
             IndexWriter indexWriter = new IndexWriter(directory, writerConfig);
 
-            @SuppressWarnings("unchecked")
-            List<String> lineList = FileUtils.readLines(new File(INDEX_DATA_PATH));
+            Random random = new Random();
 
-            for (String line : lineList) {
-                // 読み込んだ行を分割
-                String[] datas = line.split(DATA_SPLITER);
-
-                // インデックスに追加するオブジェクト
+            for (int i = 0; i < INDEX_COUNT; i++) {
                 Document document = new Document();
 
                 // フィールド:番号(数値)
-                Field fieldIntNum = new IntField("num", Integer.parseInt(datas[0]), Field.Store.YES);
+                Field fieldIntNum = new IntField("num", i, Field.Store.YES);
                 document.add(fieldIntNum);
 
                 // フィールド:番号(文字列)
-                Field fieldStrNum = new StringField("str_num", datas[0], Field.Store.YES);
+                Field fieldStrNum = new StringField("str_num", Integer.toString(i), Field.Store.YES);
                 document.add(fieldStrNum);
 
                 // フィールド:値
-                Field fieldVal = new StringField("val", datas[1], Field.Store.YES);
+                Field fieldVal = new StringField("val", "value" + random.nextInt(INDEX_COUNT), Field.Store.YES);
                 document.add(fieldVal);
 
                 // フィールド:日付
-                Field fieldDate = new StringField("date", datas[2], Field.Store.YES);
+                Field fieldDate = new StringField("date", new Date().toString(), Field.Store.YES);
                 document.add(fieldDate);
 
                 // インデックスに追加
