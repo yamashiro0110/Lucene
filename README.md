@@ -1,4 +1,4 @@
-LuceneTest
+LuceneSample
 ==========
 
-Luceneのテスト
+Luceneを試してみた
